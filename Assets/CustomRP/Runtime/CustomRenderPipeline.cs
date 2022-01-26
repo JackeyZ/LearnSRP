@@ -3,6 +3,14 @@ using UnityEngine.Rendering;
 
 public class CustomRenderPipeline : RenderPipeline {
     CameraRenderer renderer = new CameraRenderer();
+    bool useDynamicBatching, useGPUInstancing;
+
+    public CustomRenderPipeline(bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher)
+    {
+        this.useDynamicBatching = useDynamicBatching;
+        this.useGPUInstancing = useGPUInstancing;
+        GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher; // 启用SRP批处理
+    }
 
     /// <summary>
     /// Unity在每帧都会调用RP实例上的Render函数。
@@ -18,7 +26,7 @@ public class CustomRenderPipeline : RenderPipeline {
         // 遍历所有激活的相机进行渲染
         foreach (Camera camera in cameras)
         {
-            renderer.Render(context, camera);
+            renderer.Render(context, camera, useDynamicBatching, useGPUInstancing);
         }
     }
 }

@@ -22,7 +22,7 @@ public partial class CameraRenderer
     /// </summary>
     /// <param name="context">上下文</param>
     /// <param name="camera">所需渲染的相机</param>
-    public void Render(ScriptableRenderContext context, Camera camera)
+    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing)
     {
         this.context = context;
         this.camera = camera;
@@ -39,7 +39,7 @@ public partial class CameraRenderer
         }
 
         SetUp();
-        DrawVisibleGeometry();                                  // 绘制可见几何体
+        DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);                                  // 绘制可见几何体
         DrawUnsupportedShaders();                               // 绘制用了不支持shader材质的几何体
         DrawGizmos();                                           // 绘制小控件
         Submit();                                               // 根据上下文，执行渲染
@@ -62,13 +62,17 @@ public partial class CameraRenderer
     /// <summary>
     /// 把所需渲染的几何体写入上下文
     /// </summary>
-    void DrawVisibleGeometry()
+    void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing)
     {
         var sortingSettings = new SortingSettings(camera)                                           // 创建排序设置
         {
             criteria = SortingCriteria.CommonOpaque                                                 // 指定为通用渲染顺序（从前往后）
         };
-        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings);               // 创建绘图设置，参数传入着色器和顺序设置
+        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings)                // 创建绘图设置，参数传入着色器和顺序设置
+        {
+            enableDynamicBatching = useDynamicBatching,                                                           // 开启动态合批
+            enableInstancing = useGPUInstancing                                                                // 关闭GPUInstancing
+        };
         var filteringSetting = new FilteringSettings(RenderQueueRange.opaque);                      // 创建过滤设置，参数指定渲染不透明物体
 
         // 绘制不透明物体。传入剔除结果，绘图设置，过滤设置从而绘制可视的renderer

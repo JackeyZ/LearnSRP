@@ -1,58 +1,22 @@
-Shader "Unlit/NewUnlitShader"
+Shader "Custom RP/Unlit"
 {
-    Properties
-    {
-        _MainTex ("Texture", 2D) = "white" {}
-    }
-    SubShader
-    {
-        Tags { "RenderType"="Opaque" }
-        LOD 100
+	Properties{
+		_BaseColor("Color", Color) = (1.0, 1.0, 1.0, 1.0)
+	}
+	SubShader {
+		Pass {
+			HLSLPROGRAM
 
-        Pass
-        {
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            // make fog work
-            #pragma multi_compile_fog
+			// 让shader支持GUIInstancing 
+			// 一次对具有相同网格物体的多个对象发出一次绘图调用。
+			// CPU收集所有每个对象的变换和材质属性，并将它们放入数组中，然后发送给GPU(SetPassCall)。
+			// 最后，GPU遍历所有条目，并按提供顺序对其进行渲染。
+			#pragma multi_compile_instancing
 
-            #include "UnityCG.cginc"
-
-            struct appdata
-            {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            struct v2f
-            {
-                float2 uv : TEXCOORD0;
-                UNITY_FOG_COORDS(1)
-                float4 vertex : SV_POSITION;
-            };
-
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
-
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                UNITY_TRANSFER_FOG(o,o.vertex);
-                return o;
-            }
-
-            fixed4 frag (v2f i) : SV_Target
-            {
-                // sample the texture
-                fixed4 col = tex2D(_MainTex, i.uv);
-                // apply fog
-                UNITY_APPLY_FOG(i.fogCoord, col);
-                return col;
-            }
-            ENDCG
-        }
-    }
+			#pragma vertex UnlitPassVertex
+			#pragma fragment UnlitPassFragment
+			#include "UnlitPass.hlsl"					// 里面定义了顶点着色器以及片元着色器
+			ENDHLSL
+		}
+	}
 }
