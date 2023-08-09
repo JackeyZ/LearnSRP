@@ -10,6 +10,7 @@ public partial class CameraRenderer
     Camera camera;                                                                  // 当前渲染的摄像机
     CullingResults cullingResults;                                                  // 用于储存剔除结果
     static ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");       // 用于渲染的着色器
+    static ShaderTagId LitShaderTagId = new ShaderTagId("CustomLit");               // 光照着色器LightMode的tag
 
     const string bufferName = "Render Camera";
     CommandBuffer buffer = new CommandBuffer            // 调用CommandBuffer的无参构造函数，并执行大括号内的方法，对CommandBuffer里面的属性赋值
@@ -70,9 +71,10 @@ public partial class CameraRenderer
         };
         var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings)                // 创建绘图设置，参数传入着色器和顺序设置
         {
-            enableDynamicBatching = useDynamicBatching,                                                           // 开启动态合批
-            enableInstancing = useGPUInstancing                                                                // 关闭GPUInstancing
+            enableDynamicBatching = useDynamicBatching,                                             // 是否开启动态合批
+            enableInstancing = useGPUInstancing                                                     // 是否开启GPUInstancing
         };
+        drawingSettings.SetShaderPassName(1, LitShaderTagId);                                       // 把LightMode的Tag是CustomLit的pass设置到1的位置（0的位置在构造函数里设置了），让这次draw call可以用这个pass渲染
         var filteringSetting = new FilteringSettings(RenderQueueRange.opaque);                      // 创建过滤设置，参数指定渲染不透明物体
 
         // 绘制不透明物体。传入剔除结果，绘图设置，过滤设置从而绘制可视的renderer

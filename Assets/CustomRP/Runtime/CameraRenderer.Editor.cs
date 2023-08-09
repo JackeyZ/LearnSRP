@@ -76,7 +76,7 @@ partial class CameraRenderer
         // 如果是scene窗口下的摄像机
         if (camera.cameraType == CameraType.SceneView)
         {
-            // UI显式添加到世界几何体中
+            // UI显式添加到世界几何体中,这样Scene窗口才能把UI渲染出来
             ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
         }
     }
