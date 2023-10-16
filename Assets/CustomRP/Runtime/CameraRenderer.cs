@@ -11,6 +11,7 @@ public partial class CameraRenderer
     CullingResults cullingResults;                                                  // 用于储存剔除结果
     static ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");       // 用于渲染的着色器
     static ShaderTagId LitShaderTagId = new ShaderTagId("CustomLit");               // 光照着色器LightMode的tag
+    Lighting lighting = new Lighting();
 
     const string bufferName = "Render Camera";
     CommandBuffer buffer = new CommandBuffer            // 调用CommandBuffer的无参构造函数，并执行大括号内的方法，对CommandBuffer里面的属性赋值
@@ -40,6 +41,7 @@ public partial class CameraRenderer
         }
 
         SetUp();
+        lighting.SetUp(context);                                // 设置光照信息
         DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);                                  // 绘制可见几何体
         DrawUnsupportedShaders();                               // 绘制用了不支持shader材质的几何体
         DrawGizmos();                                           // 绘制小控件

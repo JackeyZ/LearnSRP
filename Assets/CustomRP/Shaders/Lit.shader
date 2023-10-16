@@ -1,8 +1,8 @@
-// 无光照着色器
-Shader "Custom RP/Unlit"
+// 带光照着色器
+Shader "Custom RP/Lit"
 {
 	Properties{
-		_BaseColor("Color", Color) = (1.0, 1.0, 1.0, 1.0)
+		_BaseColor("Color", Color) = (0.5, 0.5, 0.5, 1.0)
 		_Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5									// 透明度裁剪
 		[Toggle(_CLIPPING)] _Clipping("Alpha Clipping", Float) = 0						// 用来切换_CLIPPING关键字
 		_BaseMap("Texture", 2D) = "white" {}
@@ -12,6 +12,11 @@ Shader "Custom RP/Unlit"
 	}
 	SubShader {
 		Pass {
+			// Pass里的内置管线tags文档https://docs.unity.cn/cn/2020.3/Manual/shader-predefined-pass-tags-built-in.html
+			// SubShader的tags文档https://docs.unity.cn/cn/2020.3/Manual/SL-SubShaderTags.html
+			Tags{
+				"LightMode" = "CustomLit"				// 自定义的光照方法，将着色器的照明模式设置为CustomLit（不是unity自带的）
+			}
 			Blend [_SrcBlend] [_DstBlend]
 			ZWrite [_ZWrite]
 
@@ -25,9 +30,9 @@ Shader "Custom RP/Unlit"
 			// 最后，GPU遍历所有条目，并按提供顺序对其进行渲染。
 			#pragma multi_compile_instancing
 
-			#pragma vertex UnlitPassVertex
-			#pragma fragment UnlitPassFragment
-			#include "UnlitPass.hlsl"					// 里面定义了顶点着色器以及片元着色器
+			#pragma vertex LitPassVertex
+			#pragma fragment LitPassFragment
+			#include "LitPass.hlsl"					// 里面定义了顶点着色器以及片元着色器
 			ENDHLSL
 		}
 	}

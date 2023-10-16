@@ -1,8 +1,11 @@
-// 无光照着色器的pass
-#ifndef CUSTOM_UNLIT_PASS_INCLUDE
-#define CUSTOM_UNLIT_PASS_INCLUDE
+// 带光照着色器的pass
+#ifndef CUSTOM_LIT_PASS_INCLUDE
+#define CUSTOM_LIT_PASS_INCLUDE
 
 #include "../ShaderLibrary/Common.hlsl"
+#include "../ShaderLibrary/Surface.hlsl"			// 表面数据结构体
+#include "../ShaderLibrary/Light.hlsl"				// 光照计算相关结构体
+#include "../ShaderLibrary/Lighting.hlsl"			// 光照计算相关函数
 
 // 纹理和采样器状态都是着色器资源，不属于PerMaterial数据（材质属性）。不能按实例提供(不能包含在UnityPerMaterial里面)，必须在全局范围内声明。
 TEXTURE2D(_BaseMap);
@@ -24,6 +27,7 @@ UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 // 顶点着色器输入
 struct Attributes{
 	float3 positionOS : POSITION;
+	float3 normalOS : NORMAL;
 	float2 baseUV : TEXCOORD0;													
 	UNITY_VERTEX_INPUT_INSTANCE_ID												// 启用GUIInstancing的时候，用此宏，可以让顶点传入实例化id
 };
@@ -31,22 +35,24 @@ struct Attributes{
 // 顶点着色器输出
 struct Varyings {
 	float4 positionCS : SV_POSITION;
+	float3 normalWS : VAR_NORMAL;
 	float2 baseUV : VAR_BASE_UV;												// 这里的VAR_BASE_UV是没用的，因为语法的要求，这里要这么写， 命名随意
 	UNITY_VERTEX_INPUT_INSTANCE_ID												// 启用GUIInstancing的时候，用此宏，让顶点着色器输出实例化id
 };
 
-Varyings UnlitPassVertex(Attributes input){
+Varyings LitPassVertex(Attributes input){
 	Varyings output;
 	UNITY_SETUP_INSTANCE_ID(input);												// 从input中提取对象索引，并将其存储在其他GUIInstancing相关宏所依赖的全局静态变量中
 	UNITY_TRANSFER_INSTANCE_ID(input, output);									// 把input中的实例化id转换到片元着色器中用的实例化id
 	float3 positionWS = TransformObjectToWorld(input.positionOS);				// 把Object Space下的坐标转换到world space下
 	output.positionCS = TransformWorldToHClip(positionWS);						// 坐标转换到Camera Space下
+	output.normalWS = TransformObjectToWorldNormal(input.normalOS);				// 法线转换到世界空间下
 	float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);	// 根据实例id获取从UnityPerMaterial缓冲区读取对应的纹理缩放和偏移
 	output.baseUV = input.baseUV * baseST.xy + baseST.zw;						// 应用纹理的缩放与偏移
 	return output;
 }
 
-float4 UnlitPassFragment(Varyings input) : SV_TARGET{
+float4 LitPassFragment(Varyings input) : SV_TARGET{
 	UNITY_SETUP_INSTANCE_ID(input);													// 从input中提取对象索引，并将其存储在其他GUIInstancing相关宏所依赖的全局静态变量中
 	float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.baseUV);		// 传入纹理以及采样器还有uv，返回对应位置的纹理颜色
 	float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);	// 根据实例id从UnityPerMaterial缓冲区的_BaseColor数组中取出对应的_BaseColor
@@ -54,7 +60,14 @@ float4 UnlitPassFragment(Varyings input) : SV_TARGET{
 	#if defined(_CLIPPING)
 		clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff));
 	#endif
-	return base;
+
+	Surface surface;
+	surface.normal = normalize(input.normalWS);
+	surface.color = base.rgb;
+	surface.alpha = base.a;
+
+	float3 color = GetLighting(surface);
+	return float4(color, surface.alpha);
 }
 
 

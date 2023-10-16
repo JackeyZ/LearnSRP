@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor;
+using UnityEngine.Profiling;
 
 /// <summary>
 /// CameraRenderer类在编辑器下的代码
@@ -65,7 +66,9 @@ partial class CameraRenderer
     /// </summary>
     partial void PrepareBuffer()
     {
+        Profiler.BeginSample("Editor Only");             // 下面的camera.name会产生GC，这里调用Profiler.BeginSample是为了把这个GC记录放到Profiler->cpu记录中的Editor Only节点下
         buffer.name = SampleName = camera.name;          // 把摄像机名称赋值进去，这样editor下profiler和frame debugger中就会显示对应摄像机的名称,同时用SampleName记录下来
+        Profiler.EndSample();
     }
 
     /// <summary>
