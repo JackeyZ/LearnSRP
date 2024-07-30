@@ -41,7 +41,7 @@ public partial class CameraRenderer
         }
 
         SetUp();
-        lighting.SetUp(context);                                // 设置光照信息
+        lighting.SetUp(context, cullingResults);                                // 设置光照信息
         DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);                                  // 绘制可见几何体
         DrawUnsupportedShaders();                               // 绘制用了不支持shader材质的几何体
         DrawGizmos();                                           // 绘制小控件

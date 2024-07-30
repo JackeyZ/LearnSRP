@@ -6,10 +6,10 @@
 
 // 纹理和采样器状态都是着色器资源，不属于PerMaterial数据（材质属性）。不能按实例提供(不能包含在UnityPerMaterial里面)，必须在全局范围内声明。
 TEXTURE2D(_BaseMap);
-SAMPLER(sampler_BaseMap);
+SAMPLER(sampler_BaseMap); // 决定如何对纹理进行采样
 
 // 使用核心RP库中的CBUFFER_START宏定义，因为有些平台是不支持常量缓冲区的。这里不能直接用cbuffer UnityPerMaterial{ float4 _BaseColor };
-// Properties大括号里声明的所有变量如果需要支持SRP合批，都需要在UnityPerMaterial的CBUFFER中声明所有材质属性（纹理、采样器不是材质属性）
+// Properties大括号里声明的所有变量如果需要支持SRP合批，都需要在名为UnityPerMaterial的CBUFFER块中声明所有材质属性（纹理、采样器不是材质属性）
 // 在GPU给变量设置了缓冲区，则不需要每一帧从CPU传递数据到GPU，仅仅在变动时候才需要传递，能够有效降低set pass call
 //CBUFFER_START(UnityPerMaterial)
 //float4 _BaseColor;															// 将_BaseColor放入特定的常量内存缓冲区，不能全局级别定义，否则无法支持SRP合批

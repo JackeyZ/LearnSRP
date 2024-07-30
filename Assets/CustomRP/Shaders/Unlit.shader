@@ -16,6 +16,7 @@ Shader "Custom RP/Unlit"
 			ZWrite [_ZWrite]
 
 			HLSLPROGRAM
+			#pragma target 3.5						// 由于使用了可变长度的循环，而WebGL1.0和OpenGL ES 2.0不支持，因此这里提高编译目标，不支持旧的GPU
 
 			// 自定义的关键字，用来控制是否启用透明度裁剪
 			#pragma shader_feature _CLIPPING
@@ -31,4 +32,6 @@ Shader "Custom RP/Unlit"
 			ENDHLSL
 		}
 	}
+
+	CustomEditor "CustomShaderGUI"
 }
